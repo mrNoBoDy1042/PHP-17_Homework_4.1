@@ -4,9 +4,16 @@
   // Вывод полей для выборки
   $cols = array('name', 'author', 'year', 'isbn', 'genre');
   foreach ($cols as $value) {
-    echo "<p>".ucfirst($value).
-    ": </p><input type=\"text\" name=\"$value\" value=\"$_POST[$value]\">";
-  }
+    if(isset($_POST[$value])){
+      $input =  "<p>".ucfirst($value).
+      ": </p><input type=\"text\" name=\"$value\" value=\"$_POST[$value]\">";
+    }
+    else {
+      $input =  "<p>".ucfirst($value).
+      ": </p><input type=\"text\" name=\"$value\">";
+    }
+    echo $input;
+}
   ?>
   <input type="submit" value="Find">
 </form>
@@ -25,11 +32,18 @@ $connection = new PDO(
   // Функция для дополнения запроса
   function BuildQuery($query, $field)
   {
-    // Если WHERE в запросе уже есть, значит мы добавляем второе условие
-    // и нужен OR
-    $query .= (strpos($query,'WHERE')) ? 'OR ' : ' WHERE ';
-    $query = $query."$field LIKE '%$_POST[$field]%' ";
-    return $query;
+    // Проверяем запрос на SQL инъекцию
+    if (!strpos($_POST[$field],';')) {
+      // Если WHERE в запросе уже есть, значит мы добавляем второе условие
+      // и нужен OR
+      $query .= (strpos($query,'WHERE')) ? 'OR ' : ' WHERE ';
+      $query = $query."$field LIKE '%$_POST[$field]%' ";
+      return $query;
+    }
+    else {
+      echo "<script>alert('В поле $field введен неправильный запрос')</script>";
+      die();
+    }
   }
 
 // Создаем основу запроса
